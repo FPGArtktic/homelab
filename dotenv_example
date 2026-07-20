@@ -2,7 +2,7 @@
 TZ=Europe/Warsaw
 PUID=1000
 PGID=1000
-DOMAIN=homelab.local
+DOMAIN=.local
 
 # ===== Redis =====
 REDIS_PASSWORD=changeme_redis_2607
