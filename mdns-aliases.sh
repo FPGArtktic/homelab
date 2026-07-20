@@ -7,11 +7,26 @@
 # Run as a systemd service (see setup-host.sh).
 set -euo pipefail
 
-LAN_IF=$(ip route show default | awk '/default/ {print $5; exit}')
-IP=$(ip -4 -o addr show "$LAN_IF" | awk '{print $4}' | cut -d/ -f1)
+# Wait for the LAN to have a routable IPv4 before publishing. At boot this service
+# can start before the interface is configured; without this the script would exit
+# on an empty IP and rely on systemd's restart loop to eventually succeed.
+LAN_IF="" IP=""
+for _ in $(seq 1 60); do
+  LAN_IF=$(ip route show default | awk '/default/ {print $5; exit}')
+  [[ -n $LAN_IF ]] && IP=$(ip -4 -o addr show "$LAN_IF" | awk '{print $4}' | cut -d/ -f1)
+  [[ -n $IP ]] && break
+  sleep 1
+done
+if [[ -z $IP ]]; then
+  echo "No routable IPv4 after 60s; giving up (systemd will restart)." >&2
+  exit 1
+fi
 
-# homelab.local itself is already advertised by avahi (host-name=homelab).
-NAMES=(gitea portainer ci logs netdata files archive registry registry-ui)
+# We also publish "homelab" explicitly instead of relying on avahi advertising the
+# host's own hostname: on name collision avahi renames the host (homelab-2.local,
+# homelab-3.local, ...), which silently breaks homelab.local. An explicit A record
+# is immune to that.
+NAMES=(homelab gitea portainer ci logs netdata files archive registry registry-ui)
 
 echo "Publishing *.local -> ${IP} (iface ${LAN_IF})"
 pids=()

@@ -55,6 +55,7 @@ cat > /etc/systemd/system/homelab-mdns.service <<UNIT
 [Unit]
 Description=Homelab mDNS .local A-record aliases
 After=avahi-daemon.service network-online.target
+Wants=network-online.target
 Requires=avahi-daemon.service
 
 [Service]

@@ -22,7 +22,20 @@ services:
     image: nginx:alpine
     container_name: nginx
     restart: unless-stopped
-    depends_on: [homepage]
+    # nginx starts last, after every upstream it proxies to. It re-resolves
+    # container IPs at runtime via the Docker resolver (00-proxy.conf), so this
+    # is not strictly required, but it makes nginx come up once the backends exist.
+    depends_on:
+      - homepage
+      - portainer
+      - dozzle
+      - netdata
+      - gitea
+      - woodpecker-server
+      - filebrowser
+      - archivebox
+      - registry
+      - registry-ui
     ports:
       - "80:80"
     volumes:
