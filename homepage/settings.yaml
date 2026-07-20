@@ -1,0 +1,12 @@
+title: Homelab
+favicon: https://gethomepage.dev/img/favicon.ico
+theme: dark
+color: slate
+headerStyle: boxed
+layout:
+  Infrastructure:
+    style: row
+    columns: 4
+  Applications:
+    style: row
+    columns: 4

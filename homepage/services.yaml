@@ -1,0 +1,61 @@
+- Infrastructure:
+    - Portainer:
+        href: http://portainer.local
+        description: Docker management
+        icon: portainer.png
+        server: my-docker
+        container: portainer
+    - Nginx:
+        description: Reverse proxy
+        icon: nginx.png
+        server: my-docker
+        container: nginx
+    - Dozzle:
+        href: http://logs.local
+        description: Live container logs
+        icon: dozzle.png
+        server: my-docker
+        container: dozzle
+    - Netdata:
+        href: http://netdata.local
+        description: Host monitoring
+        icon: netdata.png
+        server: my-docker
+        container: netdata
+
+- Applications:
+    - Gitea:
+        href: http://gitea.local
+        description: Git repositories
+        icon: gitea.png
+        server: my-docker
+        container: gitea
+    - Woodpecker CI:
+        href: http://ci.local
+        description: CI/CD
+        icon: woodpecker-ci.png
+        server: my-docker
+        container: woodpecker-server
+    - File Browser:
+        href: http://files.local
+        description: Web file manager
+        icon: filebrowser.png
+        server: my-docker
+        container: filebrowser
+    - ArchiveBox:
+        href: http://archive.local
+        description: Web page archive
+        icon: archivebox.png
+        server: my-docker
+        container: archivebox
+    - Docker Registry:
+        href: http://registry-ui.local
+        description: Private image registry
+        icon: docker.png
+        server: my-docker
+        container: registry
+    - Redis:
+        description: Cache / queue (redis:6379)
+        icon: redis.png
+        server: my-docker
+        container: redis
