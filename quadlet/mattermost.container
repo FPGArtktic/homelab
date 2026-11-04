@@ -1,0 +1,24 @@
+# Mattermost Team Edition (chat, incoming webhooks). UI at http://mattermost.local.
+# Config comes from MM_* env vars (any config.json key: MM_<SECTION>_<KEY>).
+[Unit]
+Description=Mattermost (chat, webhooks)
+After=mattermost-db.service
+Wants=mattermost-db.service
+
+[Container]
+ContainerName=mattermost
+Image=docker.io/mattermost/mattermost-team-edition:11.11.2
+Network=homelab.network
+EnvironmentFile=%h/.config/homelab/homelab.env
+Environment=MM_SQLSETTINGS_DRIVERNAME=postgres
+Environment=MM_SERVICESETTINGS_SITEURL=http://mattermost.local
+Environment=MM_SERVICESETTINGS_ENABLELOCALMODE=true
+Environment=MM_SERVICESETTINGS_ENABLEPOSTUSERNAMEOVERRIDE=true
+Environment=MM_SERVICESETTINGS_ENABLEPOSTICONOVERRIDE=true
+Volume=mattermost_data:/mattermost/data
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

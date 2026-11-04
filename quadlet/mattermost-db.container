@@ -1,0 +1,19 @@
+# PostgreSQL 17 for Mattermost. Internal only (no PublishPort). Password comes from
+# homelab.env (POSTGRES_PASSWORD, same value as in MM_SQLSETTINGS_DATASOURCE).
+[Unit]
+Description=PostgreSQL for Mattermost
+
+[Container]
+ContainerName=mattermost-db
+Image=docker.io/library/postgres:17-alpine
+Network=homelab.network
+EnvironmentFile=%h/.config/homelab/homelab.env
+Environment=POSTGRES_USER=mmuser
+Environment=POSTGRES_DB=mattermost
+Volume=mattermost_db:/var/lib/postgresql/data
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

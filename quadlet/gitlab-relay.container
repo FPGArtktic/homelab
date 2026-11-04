@@ -1,0 +1,22 @@
+# GitLab -> Mattermost relay (notify/relay.py). Receives GitLab project webhooks
+# (push, tag, pipeline) on :8070 inside the homelab network, formats them, and posts to
+# Mattermost. Stdlib only, so the script is mounted read-only into a stock python image.
+[Unit]
+Description=GitLab to Mattermost relay
+After=mattermost.service
+Wants=mattermost.service
+
+[Container]
+ContainerName=gitlab-relay
+Image=docker.io/library/python:3.12-alpine
+Network=homelab.network
+# MM_WEBHOOK_URL and GITLAB_HOOK_TOKEN live in homelab.env (secrets, not in git)
+EnvironmentFile=%h/.config/homelab/homelab.env
+Volume=%h/homelab/notify:/app:ro
+Exec=python3 -u /app/relay.py
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

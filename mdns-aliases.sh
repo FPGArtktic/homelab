@@ -26,7 +26,7 @@ fi
 # host's own hostname: on name collision avahi renames the host (homelab-2.local,
 # homelab-3.local, ...), which silently breaks homelab.local. An explicit A record
 # is immune to that.
-NAMES=(homelab info gitlab forgejo grafana microdash portainer logs netdata files archive)
+NAMES=(homelab info gitlab forgejo grafana microdash mattermost portainer logs netdata files archive)
 
 echo "Publishing *.local -> ${IP} (iface ${LAN_IF})"
 pids=()
