@@ -36,6 +36,12 @@
         icon: gitlab.png
         server: my-docker
         container: gitlab
+    - Mattermost:
+        href: http://mattermost.local
+        description: Chat; CI and push notifications (channel ci)
+        icon: mattermost.png
+        server: my-docker
+        container: mattermost
     - Forgejo:
         href: http://forgejo.local
         description: Git + Actions (GitHub Actions practice), SSH :2223
