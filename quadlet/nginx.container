@@ -1,0 +1,21 @@
+# Reverse proxy for every *.local name, published on host port 80 (needs
+# net.ipv4.ip_unprivileged_port_start<=80 on the host, see README).
+# Fixed IP: runner job containers resolve *.local names to it via extra_hosts.
+[Unit]
+Description=Homelab nginx reverse proxy (:80)
+
+[Container]
+ContainerName=nginx
+Image=docker.io/library/nginx:1.27-alpine
+Network=homelab.network
+IP=10.90.0.10
+PublishPort=80:80
+Volume=%h/homelab/nginx/conf.d:/etc/nginx/conf.d:ro
+Volume=%h/homelab/nginx/snippets:/etc/nginx/snippets:ro
+Volume=%h/homelab/site:/var/www/info:ro
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,20 @@
+# Docker-executor runner talking to the user's podman socket. Job containers join
+# the homelab network (see README: runner registration flags).
+[Unit]
+Description=GitLab Runner (podman executor)
+After=gitlab.service
+Wants=gitlab.service
+
+[Container]
+ContainerName=gitlab-runner
+Image=docker.io/gitlab/gitlab-runner:latest
+Network=homelab.network
+AddHost=gitlab.local:10.90.0.20
+Volume=gitlab_runner_config:/etc/gitlab-runner
+Volume=%t/podman/podman.sock:/var/run/docker.sock
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

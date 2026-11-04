@@ -1,0 +1,23 @@
+# Forgejo Actions runner (docker executor on the user's podman socket). It waits for
+# /data/.runner, which `forgejo-runner register` writes once (see README).
+# AddHost: forgejo.local must resolve to nginx so job containers and the runner
+# reach Forgejo on port 80, the same URL the browser uses.
+[Unit]
+Description=Forgejo Actions runner
+After=forgejo.service
+Wants=forgejo.service
+
+[Container]
+ContainerName=forgejo-runner
+Image=code.forgejo.org/forgejo/runner:6
+Network=homelab.network
+AddHost=forgejo.local:10.90.0.10
+Volume=forgejo_runner:/data
+Volume=%t/podman/podman.sock:/var/run/docker.sock
+Exec=sh -c 'while [ ! -f /data/.runner ]; do sleep 5; done; exec forgejo-runner daemon --config /data/config.yml'
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

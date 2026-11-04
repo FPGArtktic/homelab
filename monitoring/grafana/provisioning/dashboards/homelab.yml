@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: homelab
+    orgId: 1
+    folder: Homelab
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: false        # edit the JSON in the repo, not in the UI
+    options:
+      path: /var/lib/grafana/dashboards

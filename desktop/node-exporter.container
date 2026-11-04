@@ -1,0 +1,18 @@
+# Desktop (pc-arch) host metrics, scraped over the LAN by the server's Prometheus.
+[Unit]
+Description=node_exporter (desktop host metrics)
+
+[Container]
+ContainerName=node-exporter
+Image=quay.io/prometheus/node-exporter:latest
+PublishPort=9100:9100
+Volume=/proc:/host/proc:ro
+Volume=/sys:/host/sys:ro
+Volume=/:/rootfs:ro
+Exec=--path.procfs=/host/proc --path.sysfs=/host/sys --path.rootfs=/rootfs
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

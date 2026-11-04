@@ -1,0 +1,23 @@
+[Unit]
+Description=ArchiveBox (archive.local)
+
+[Container]
+ContainerName=archivebox
+Image=docker.io/archivebox/archivebox:latest
+Network=homelab.network
+Exec=server --quick-init 0.0.0.0:8000
+Environment=ALLOWED_HOSTS=*
+Environment=CSRF_TRUSTED_ORIGINS=http://archive.local
+Environment=PUBLIC_INDEX=True
+Environment=PUBLIC_SNAPSHOTS=True
+# The image entrypoint starts as root and chowns /data to PUID:PGID (archivebox
+# user 911) before dropping privileges. Without these it cannot write its logs.
+Environment=PUID=911
+Environment=PGID=911
+Volume=%h/homelab/data/archivebox:/data
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,23 @@
+# Rootless: no pid=host, no SYS_ADMIN/apparmor:unconfined. Host metrics are
+# limited to what the user can read from /proc and /sys.
+[Unit]
+Description=Netdata (host monitoring)
+
+[Container]
+ContainerName=netdata
+Image=docker.io/netdata/netdata:latest
+HostName=homelab
+Network=homelab.network
+Volume=netdata_config:/etc/netdata
+Volume=netdata_lib:/var/lib/netdata
+Volume=netdata_cache:/var/cache/netdata
+Volume=/proc:/host/proc:ro
+Volume=/sys:/host/sys:ro
+Volume=/etc/os-release:/host/etc/os-release:ro
+Volume=%t/podman/podman.sock:/var/run/docker.sock:ro
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

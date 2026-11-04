@@ -1,0 +1,19 @@
+# Desktop (pc-arch) container metrics on host port 8082 (127.0.0.1:8080 is taken there).
+[Unit]
+Description=cAdvisor (desktop container metrics)
+
+[Container]
+ContainerName=cadvisor
+Image=gcr.io/cadvisor/cadvisor:latest
+PublishPort=8082:8080
+Volume=/:/rootfs:ro
+Volume=/sys:/sys:ro
+# Podman socket at cAdvisor's default Podman path, for container names. Needs podman.socket enabled.
+Volume=%t/podman/podman.sock:/var/run/podman/podman.sock:ro
+PodmanArgs=--cgroupns=host
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

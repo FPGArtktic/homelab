@@ -1,0 +1,22 @@
+# Per-container metrics for Prometheus. Rootless: built from cgroups and the host
+# mounts below; runtime-specific labels are limited (no podman socket mounted).
+[Unit]
+Description=cAdvisor (container metrics)
+
+[Container]
+ContainerName=cadvisor
+Image=gcr.io/cadvisor/cadvisor:latest
+Network=homelab.network
+Volume=/:/rootfs:ro
+Volume=/sys:/sys:ro
+# Podman socket at cAdvisor's default Podman path: gives container names, so the
+# dashboards' `name` label and per-container panels get data.
+Volume=%t/podman/podman.sock:/var/run/podman/podman.sock:ro
+# Private cgroup namespace would hide the user's container cgroups from cAdvisor.
+PodmanArgs=--cgroupns=host
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

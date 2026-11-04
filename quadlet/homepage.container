@@ -1,0 +1,18 @@
+[Unit]
+Description=Homepage dashboard
+
+[Container]
+ContainerName=homepage
+Image=ghcr.io/gethomepage/homepage:latest
+Network=homelab.network
+# Host header check: list each form clients may send (with and without port).
+Environment=HOMEPAGE_ALLOWED_HOSTS=homelab.local,localhost,192.168.101.253
+Volume=%h/homelab/homepage:/app/config
+# Rootless: container root == host user, so the user's podman socket is readable.
+Volume=%t/podman/podman.sock:/var/run/docker.sock:ro
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

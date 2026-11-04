@@ -1,7 +1,7 @@
 - Infrastructure:
     - Portainer:
         href: http://portainer.local
-        description: Docker management
+        description: Container management
         icon: portainer.png
         server: my-docker
         container: portainer
@@ -22,20 +22,32 @@
         icon: netdata.png
         server: my-docker
         container: netdata
+    - Grafana:
+        href: http://grafana.local
+        description: Metrics dashboards (Prometheus)
+        icon: grafana.png
+        server: my-docker
+        container: grafana
 
 - Applications:
-    - Gitea:
-        href: http://gitea.local
-        description: Git repositories
-        icon: gitea.png
+    - GitLab:
+        href: http://gitlab.local
+        description: Git, CI/CD and container registry (SSH :2222, registry :5050)
+        icon: gitlab.png
         server: my-docker
-        container: gitea
-    - Woodpecker CI:
-        href: http://ci.local
-        description: CI/CD
-        icon: woodpecker-ci.png
+        container: gitlab
+    - Forgejo:
+        href: http://forgejo.local
+        description: Git + Actions (GitHub Actions practice), SSH :2223
+        icon: forgejo.png
         server: my-docker
-        container: woodpecker-server
+        container: forgejo
+    - MikroDash:
+        href: http://microdash.local
+        description: MikroTik RouterOS dashboard
+        icon: mikrotik.png
+        server: my-docker
+        container: mikrodash
     - File Browser:
         href: http://files.local
         description: Web file manager
@@ -48,14 +60,12 @@
         icon: archivebox.png
         server: my-docker
         container: archivebox
-    - Docker Registry:
-        href: http://registry-ui.local
-        description: Private image registry
-        icon: docker.png
-        server: my-docker
-        container: registry
+    - Homelab info:
+        href: http://info.local
+        description: Ports and configuration overview
+        icon: mdi-web
     - Redis:
-        description: Cache / queue (redis:6379)
+        description: Cache / queue (redis:6379, internal only)
         icon: redis.png
         server: my-docker
         container: redis

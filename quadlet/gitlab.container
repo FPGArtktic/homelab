@@ -1,0 +1,27 @@
+# GitLab CE: repositories, CI, and the container registry (port 5050).
+# Fixed IP so the runner's job containers can reach it via extra_hosts.
+[Unit]
+Description=GitLab CE (git, CI, container registry)
+
+[Container]
+ContainerName=gitlab
+Image=docker.io/gitlab/gitlab-ce:17.11.7-ce.0
+Network=homelab.network
+IP=10.90.0.20
+HostName=gitlab.local
+PublishPort=2222:22
+PublishPort=5050:5050
+ShmSize=256m
+EnvironmentFile=%h/.config/homelab/homelab.env
+Volume=%h/homelab/gitlab/gitlab.rb:/etc/gitlab/gitlab.rb:ro
+Volume=gitlab_config:/etc/gitlab
+Volume=gitlab_logs:/var/log/gitlab
+Volume=gitlab_data:/var/opt/gitlab
+
+[Service]
+Restart=always
+# First boot runs database migrations; be patient before systemd gives up.
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target

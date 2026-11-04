@@ -1,0 +1,30 @@
+# Prometheus scrape config. Server targets resolve by container name on the homelab
+# network. Desktop targets (pc-arch, 192.168.101.23) are its published exporter ports;
+# if the desktop's DHCP address changes, update them here.
+global:
+  scrape_interval: 30s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: server-node
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels: {host: debian-srv}
+
+  - job_name: server-containers
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels: {host: debian-srv}
+
+  - job_name: desktop-node
+    static_configs:
+      - targets: ['192.168.101.23:9100']
+        labels: {host: pc-arch}
+
+  - job_name: desktop-containers
+    static_configs:
+      - targets: ['192.168.101.23:8082']
+        labels: {host: pc-arch}

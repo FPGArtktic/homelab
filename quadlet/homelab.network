@@ -1,0 +1,6 @@
+# Shared bridge for all homelab containers. Containers resolve each other by
+# ContainerName (aardvark-dns on the gateway 10.90.0.1).
+[Network]
+NetworkName=homelab
+Subnet=10.90.0.0/24
+Gateway=10.90.0.1

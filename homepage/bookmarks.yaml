@@ -1,10 +1,10 @@
 - Documentation:
-    - Gitea Docs:
-        - abbr: GT
-          href: https://docs.gitea.com/
-    - Woodpecker Docs:
-        - abbr: WP
-          href: https://woodpecker-ci.org/docs/intro
+    - GitLab Docs:
+        - abbr: GL
+          href: https://docs.gitlab.com/
+    - GitLab Runner Docs:
+        - abbr: GR
+          href: https://docs.gitlab.com/runner/
     - Homepage Docs:
         - abbr: HP
           href: https://gethomepage.dev/

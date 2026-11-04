@@ -1,4 +1,4 @@
 data/
 .env
-/logs/homepage.log
+homepage/logs/
 .specstory

@@ -1,0 +1,14 @@
+[Unit]
+Description=Dozzle (live container logs)
+
+[Container]
+ContainerName=dozzle
+Image=docker.io/amir20/dozzle:latest
+Network=homelab.network
+Volume=%t/podman/podman.sock:/var/run/docker.sock:ro
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

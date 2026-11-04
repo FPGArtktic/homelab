@@ -1,0 +1,31 @@
+# Forgejo: git server with Forgejo Actions (GitHub Actions compatible workflows).
+# Web UI on :3000 inside the network, reached as http://forgejo.local via nginx.
+# SSH on host port 2223 (2222 is GitLab's).
+[Unit]
+Description=Forgejo (git + Actions, practice for GitHub Actions)
+
+[Container]
+ContainerName=forgejo
+Image=codeberg.org/forgejo/forgejo:11
+Network=homelab.network
+# No UserNS=keep-id: the image's s6 init must start as root and drop to the git user
+# itself (rootless Podman maps that root to the homelab user, so it works).
+HostName=forgejo.local
+PublishPort=2223:2222
+EnvironmentFile=%h/.config/homelab/homelab.env
+Environment=FORGEJO__server__DOMAIN=forgejo.local
+Environment=FORGEJO__server__ROOT_URL=http://forgejo.local/
+Environment=FORGEJO__server__SSH_DOMAIN=forgejo.local
+Environment=FORGEJO__server__SSH_PORT=2223
+Environment=FORGEJO__server__SSH_LISTEN_PORT=2222
+Environment=FORGEJO__database__DB_TYPE=sqlite3
+Environment=FORGEJO__actions__ENABLED=true
+Environment=FORGEJO__security__INSTALL_LOCK=true
+Environment=FORGEJO__service__DISABLE_REGISTRATION=true
+Volume=forgejo_data:/data
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

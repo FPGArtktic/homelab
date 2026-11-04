@@ -1,0 +1,17 @@
+[Unit]
+Description=Portainer (container management, via podman API)
+
+[Container]
+ContainerName=portainer
+Image=docker.io/portainer/portainer-ce:latest
+Network=homelab.network
+Exec=-H unix:///var/run/docker.sock --admin-password-file /run/portainer_pw
+Volume=%t/podman/podman.sock:/var/run/docker.sock
+Volume=portainer_data:/data
+Volume=%h/.config/homelab/portainer_admin_password:/run/portainer_pw:ro
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

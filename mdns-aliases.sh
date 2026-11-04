@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Publishes A records for every service .local name pointing at this host's LAN IP.
-# We use single-label names (gitea.local, portainer.local, ...) because Linux
-# nss-mdns cannot resolve multi-label .local subdomains (e.g. gitea.homelab.local)
+# We use single-label names (gitlab.local, portainer.local, ...) because Linux
+# nss-mdns cannot resolve multi-label .local subdomains (e.g. gitlab.homelab.local)
 # via getaddrinfo, even though the avahi daemon can. Single-label names resolve
 # on every mDNS client with no /etc/hosts workaround.
-# Run as a systemd service (see setup-host.sh).
+# Run as a user systemd service (systemd/homelab-mdns.service).
 set -euo pipefail
 
 # Wait for the LAN to have a routable IPv4 before publishing. At boot this service
@@ -26,7 +26,7 @@ fi
 # host's own hostname: on name collision avahi renames the host (homelab-2.local,
 # homelab-3.local, ...), which silently breaks homelab.local. An explicit A record
 # is immune to that.
-NAMES=(homelab gitea portainer ci logs netdata files archive registry registry-ui)
+NAMES=(homelab info gitlab forgejo grafana microdash portainer logs netdata files archive)
 
 echo "Publishing *.local -> ${IP} (iface ${LAN_IF})"
 pids=()

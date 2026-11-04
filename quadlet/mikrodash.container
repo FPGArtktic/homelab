@@ -1,0 +1,19 @@
+# MikroDash: RouterOS v7 dashboard, UI at http://microdash.local. Router host and the
+# read-only RouterOS user are entered in the UI (Settings -> Routers), not here.
+# TRUSTED_PROXY is the fixed nginx IP so X-Forwarded-For from nginx is honoured.
+[Unit]
+Description=MikroDash (MikroTik dashboard)
+
+[Container]
+ContainerName=mikrodash
+Image=ghcr.io/secops-7/mikrodash:0.5.39
+Network=homelab.network
+Environment=PORT=3081
+Environment=TRUSTED_PROXY=10.90.0.10
+Volume=mikrodash_data:/data
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

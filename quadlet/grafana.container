@@ -1,0 +1,24 @@
+# Dashboards on http://grafana.local. Prometheus datasource is provisioned from
+# monitoring/grafana/provisioning. Admin password: GF_SECURITY_ADMIN_PASSWORD in homelab.env.
+[Unit]
+Description=Grafana (dashboards)
+After=prometheus.service
+Wants=prometheus.service
+
+[Container]
+ContainerName=grafana
+Image=docker.io/grafana/grafana:latest
+Network=homelab.network
+EnvironmentFile=%h/.config/homelab/homelab.env
+Environment=GF_SERVER_ROOT_URL=http://grafana.local
+Environment=GF_ANALYTICS_REPORTING_ENABLED=false
+Environment=GF_ANALYTICS_CHECK_FOR_UPDATES=false
+Volume=grafana_data:/var/lib/grafana
+Volume=%h/homelab/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+Volume=%h/homelab/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

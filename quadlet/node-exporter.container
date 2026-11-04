@@ -1,0 +1,18 @@
+# Host metrics for Prometheus. Host filesystem is mounted read-only; rootless so no pid/net host.
+[Unit]
+Description=node_exporter (host metrics)
+
+[Container]
+ContainerName=node-exporter
+Image=quay.io/prometheus/node-exporter:latest
+Network=homelab.network
+Volume=/proc:/host/proc:ro
+Volume=/sys:/host/sys:ro
+Volume=/:/rootfs:ro
+Exec=--path.procfs=/host/proc --path.sysfs=/host/sys --path.rootfs=/rootfs
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

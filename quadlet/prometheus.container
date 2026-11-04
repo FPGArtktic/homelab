@@ -1,0 +1,17 @@
+# Metrics store for Grafana. Scrape config lives in monitoring/prometheus.yml.
+[Unit]
+Description=Prometheus (metrics)
+
+[Container]
+ContainerName=prometheus
+Image=docker.io/prom/prometheus:latest
+Network=homelab.network
+Volume=%h/homelab/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+Volume=prometheus_data:/prometheus
+Exec=--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=30d
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Homelab - przegląd</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { color-scheme: light dark; --fg:#1d2330; --bg:#f6f7f9; --card:#fff; --muted:#667; --line:#dde1e7; --acc:#2d6cdf; }
+  @media (prefers-color-scheme: dark) { :root { --fg:#e6e9ef; --bg:#14171c; --card:#1c2028; --muted:#9aa3b2; --line:#2e3440; --acc:#6ea8ff; } }
+  body { font: 15px/1.5 system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--fg); }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  h1 { margin: 0 0 4px; font-size: 26px; }
+  h2 { font-size: 18px; margin: 28px 0 10px; }
+  p.lead { color: var(--muted); margin: 0 0 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 13px; }
+  tr:last-child td { border-bottom: 0; }
+  code { font: 13px ui-monospace, monospace; background: rgba(127,127,127,.12); padding: 1px 5px; border-radius: 4px; }
+  a { color: var(--acc); text-decoration: none; } a:hover { text-decoration: underline; }
+  .muted { color: var(--muted); }
+  pre { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; overflow-x: auto; font: 13px/1.5 ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<main>
+<h1>Homelab</h1>
+<p class="lead">Host <code>debian-srv</code> (192.168.101.253), rootless Podman, Quadlet + systemd user units. Ustawienia źródłowe są w repozytorium <code>homelab</code>.</p>
+
+<h2>Usługi (HTTP przez nginx, port 80)</h2>
+<div class="card"><table>
+<tr><th>Nazwa</th><th>Adres</th><th>Kontener</th><th>Do czego</th></tr>
+<tr><td>Homepage</td><td><a href="http://homelab.local">homelab.local</a></td><td><code>homepage</code></td><td>Dashboard startowy</td></tr>
+<tr><td>Ta strona</td><td><a href="http://info.local">info.local</a></td><td>nginx (statyczna)</td><td>Przegląd portów i konfiguracji</td></tr>
+<tr><td>GitLab</td><td><a href="http://gitlab.local">gitlab.local</a></td><td><code>gitlab</code></td><td>Repozytoria, CI/CD (nauka GitLab CI)</td></tr>
+<tr><td>Forgejo</td><td><a href="http://forgejo.local">forgejo.local</a></td><td><code>forgejo</code>, <code>forgejo-runner</code></td><td>Git + Forgejo Actions (nauka składni GitHub Actions)</td></tr>
+<tr><td>Grafana</td><td><a href="http://grafana.local">grafana.local</a></td><td><code>grafana</code></td><td>Dashboardy metryk (źródło: Prometheus)</td></tr>
+<tr><td>Portainer</td><td><a href="http://portainer.local">portainer.local</a></td><td><code>portainer</code></td><td>Zarządzanie kontenerami</td></tr>
+<tr><td>Dozzle</td><td><a href="http://logs.local">logs.local</a></td><td><code>dozzle</code></td><td>Logi kontenerów na żywo</td></tr>
+<tr><td>Netdata</td><td><a href="http://netdata.local">netdata.local</a></td><td><code>netdata</code></td><td>Monitoring hosta w czasie rzeczywistym</td></tr>
+<tr><td>MikroDash</td><td><a href="http://microdash.local">microdash.local</a></td><td><code>mikrodash</code></td><td>Dashboard routera MikroTik (RouterOS v7)</td></tr>
+<tr><td>File Browser</td><td><a href="http://files.local">files.local</a></td><td><code>filebrowser</code></td><td>Menedżer plików (projekt zarchiwizowany upstream)</td></tr>
+<tr><td>ArchiveBox</td><td><a href="http://archive.local">archive.local</a></td><td><code>archivebox</code></td><td>Archiwum stron</td></tr>
+</table></div>
+
+<h2>Porty na hoście</h2>
+<div class="card"><table>
+<tr><th>Port</th><th>Usługa</th><th>Uwagi</th></tr>
+<tr><td><code>80</code></td><td>nginx (wszystkie nazwy <code>*.local</code>)</td><td>HTTP, bez TLS (świadomie, LAN)</td></tr>
+<tr><td><code>2222</code></td><td>GitLab SSH</td><td><code>ssh://git@gitlab.local:2222</code></td></tr>
+<tr><td><code>2223</code></td><td>Forgejo SSH</td><td><code>ssh://git@forgejo.local:2223</code></td></tr>
+<tr><td><code>5050</code></td><td>GitLab Container Registry</td><td>HTTP, klient musi mieć wpis <code>insecure</code></td></tr>
+<tr><td><code>9100</code></td><td>node_exporter (desktop)</td><td>Na desktopie (pc-arch), skrapuje go Prometheus na serwerze</td></tr>
+<tr><td><code>8082</code></td><td>cAdvisor (desktop)</td><td>Na desktopie (pc-arch)</td></tr>
+<tr><td><code>5000</code></td><td>Registry 127.0.0.1 (glosator)</td><td>Osobny, nie z homelaba</td></tr>
+</table></div>
+
+<h2>Sieć wewnętrzna <code>homelab</code></h2>
+<div class="card"><table>
+<tr><th>Element</th><th>Wartość</th></tr>
+<tr><td>Podsieć / brama</td><td><code>10.90.0.0/24</code> / <code>10.90.0.1</code></td></tr>
+<tr><td>nginx</td><td><code>10.90.0.10</code> (stały, dla <code>extra_hosts</code> joba CI)</td></tr>
+<tr><td>GitLab</td><td><code>10.90.0.20</code> (stały)</td></tr>
+<tr><td>Redis</td><td><code>redis:6379</code>, tylko wewnątrz sieci, z hasłem</td></tr>
+<tr><td>Prometheus</td><td><code>prometheus:9090</code>, skrapuje node-exporter i cadvisor</td></tr>
+</table></div>
+
+<h2>Gdzie są rzeczy</h2>
+<div class="card"><table>
+<tr><th>Co</th><th>Ścieżka (na serwerze)</th></tr>
+<tr><td>Repo z konfiguracją</td><td><code>~/homelab</code></td></tr>
+<tr><td>Quadlety (jednostki)</td><td><code>~/.config/containers/systemd/</code></td></tr>
+<tr><td>Sekrety (nie w git)</td><td><code>~/.config/homelab/homelab.env</code>, <code>portainer_admin_password</code></td></tr>
+<tr><td>Dane (pliki, ArchiveBox, bazy)</td><td><code>~/homelab/data/</code></td></tr>
+<tr><td>Dane named volumes</td><td><code>podman volume ls</code> (gitlab_*, forgejo_data, grafana_data, prometheus_data, mikrodash_data, ...)</td></tr>
+</table></div>
+
+<h2>Najczęstsze polecenia</h2>
+<pre>systemctl --user list-units 'homelab*' nginx.service gitlab.service   # stan
+systemctl --user --failed                                             # co padło
+systemctl --user restart gitlab                                       # jedna usługa
+journalctl --user -u forgejo -f                                       # logi
+podman ps                                                             # kontenery
+~/homelab/scripts/install.sh                                          # wdrożenie zmian z repo</pre>
+
+<p class="muted">Strona jest statyczna i pisana ręcznie. Po zmianie portów lub usług zaktualizuj ją w repo (<code>site/index.html</code>).</p>
+</main>
+</body>
+</html>

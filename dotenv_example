@@ -1,17 +1,4 @@
-# ===== Global =====
-TZ=Europe/Warsaw
-PUID=1000
-PGID=1000
-DOMAIN=.local
-
-# ===== Redis =====
-REDIS_PASSWORD=changeme_redis_2607
-
-# ===== Woodpecker CI =====
-# FILL IN after creating the OAuth application in Gitea (see README, step 5):
-WOODPECKER_GITEA_CLIENT=
-WOODPECKER_GITEA_SECRET=
-# Gitea admin login (the account you create on first launch):
-WOODPECKER_ADMIN=admin
-# Shared server<->agent secret (generated, do not change without reason):
-WOODPECKER_AGENT_SECRET=4c026a9794cbec58dce8c553c6ab835601e93f4a061a8b4f589467c6cdcbfbcd
+# Documentation only - the real file is generated on the host by scripts/gen-env.sh
+# into ~/.config/homelab/homelab.env (mode 600, never committed). Keys:
+REDIS_PASSWORD=          # random, generated
+GITLAB_ROOT_PASSWORD=    # random, initial root login for GitLab (change after first login)

@@ -1,102 +1,150 @@
 # Homelab
 
-Docker Compose stack with an nginx reverse proxy and mDNS. Every service has its own
-single-label `.local` name, reachable from any mDNS client (macOS, iOS, Windows 10+,
-Linux with avahi) **without touching `/etc/hosts`**.
+Rootless Podman stack (Quadlet + systemd user units) on a Debian host, behind an
+nginx reverse proxy and mDNS. Every service has a single-label `.local` name,
+reachable from any mDNS client (macOS, iOS, Windows 10+, Linux with avahi) **without
+touching `/etc/hosts`**. Git, CI/CD and the container registry are one GitLab.
+
+Host: `mokulanis@192.168.101.253` (debian-srv). Everything runs as the normal user.
 
 ## Services
 
-| URL                        | What it is                     |
-|----------------------------|--------------------------------|
-| http://homelab.local       | **Homepage** – start dashboard |
-| http://portainer.local     | Portainer – Docker management  |
-| http://logs.local          | Dozzle – container logs        |
-| http://netdata.local       | Netdata – host monitoring      |
-| http://gitea.local         | Gitea – git repos (SSH :2222)  |
-| http://ci.local            | Woodpecker CI                  |
-| http://files.local         | File Browser                   |
-| http://archive.local       | ArchiveBox                     |
-| http://registry.local      | Docker Registry (API v2)       |
-| http://registry-ui.local   | Registry UI                    |
-| redis:6379 / host :6379    | Redis (password in `.env`)     |
+All web UIs are on plain **port 80** through the homelab nginx.
 
-## Getting started
+| URL                              | What it is                          |
+|----------------------------------|-------------------------------------|
+| http://homelab.local             | **Homepage** - start dashboard      |
+| http://gitlab.local              | **GitLab** - repos, CI/CD           |
+| ssh://git@gitlab.local:2222      | GitLab SSH (git clone/push)         |
+| gitlab.local:5050                | GitLab container registry           |
+| http://portainer.local           | Portainer - container management    |
+| http://logs.local                | Dozzle - container logs             |
+| http://netdata.local             | Netdata - host monitoring           |
+| http://files.local               | File Browser                        |
+| http://archive.local             | ArchiveBox                          |
+| redis:6379 (internal only)       | Redis, password in `homelab.env`    |
 
-```bash
-cd ~/homelab
+## Layout
 
-# 1. Host setup: avahi + mDNS + docker-compose + insecure registry + mDNS service
-sudo ./setup-host.sh
-
-# 2. Start the whole stack
-docker compose up -d
-
-# 3. Inspect
-docker compose ps
-docker compose logs -f nginx
+```
+quadlet/          -> ~/.config/containers/systemd/   (one unit per container + network)
+systemd/          -> ~/.config/systemd/user/         (homelab-mdns.service)
+scripts/install.sh   installs everything, enables autostart, restarts what changed
+scripts/gen-env.sh   creates secrets in ~/.config/homelab/ (never in git)
+nginx/            reverse proxy config (one server block per name)
+homepage/         dashboard config
+gitlab/gitlab.rb  GitLab Omnibus config (mounted read-only)
+mdns-aliases.sh   publishes the *.local names via avahi
+data/             bind-mounted state (gitignored)
 ```
 
-nginx routes each `*.local` (server_name) to the right container. The names are
-advertised on the LAN by the `homelab-mdns` systemd service, which publishes an A record
-per name -> this host's LAN IP (installed by `setup-host.sh`). `homelab.local` is the
-host's own avahi hostname.
+## One-time host setup (needs root, once)
 
-## First-run configuration
+Rootless Podman cannot bind ports below 1024, and nginx serves :80. Allow it once:
 
-### Gitea
-1. Open http://gitea.local and finish the installer (SQLite DB is preconfigured).
-2. Create an account – **the first user becomes the admin**. Put that login into `.env`
-   as `WOODPECKER_ADMIN` if it differs from `admin`.
-
-### Woodpecker CI (OAuth to Gitea) – step 5
-1. In Gitea: **Settings → Applications → Create new OAuth2 application**.
-   - Name: `Woodpecker`
-   - Redirect URI: `http://ci.local/authorize`
-2. Copy the **Client ID** and **Client Secret** into `.env`:
-   ```
-   WOODPECKER_GITEA_CLIENT=...
-   WOODPECKER_GITEA_SECRET=...
-   ```
-3. Reload: `docker compose up -d woodpecker-server woodpecker-agent`
-4. Open http://ci.local and log in via Gitea.
-
-### File Browser
-Default login `admin` / `admin` – change the password on first login.
-
-### Docker Registry – pushing images
-`setup-host.sh` adds `registry.local` to `insecure-registries` (push over HTTP). Test:
 ```bash
-docker pull alpine
-docker tag alpine registry.local/alpine:test
-docker push registry.local/alpine:test
+echo 'net.ipv4.ip_unprivileged_port_start=80' | sudo tee /etc/sysctl.d/90-unprivileged-ports.conf
+sudo sysctl --system
 ```
 
-## Accessing from another machine on the LAN
+This lets any local user bind ports 80 and up. On a single-user host that is fine.
+Autostart also needs linger; `install.sh` enables it, or run once:
+`sudo loginctl enable-linger mokulanis`.
+
+## Install / update on the server
+
+From the repo checkout:
+
+```bash
+rsync -az --exclude data/ --exclude .git/ ./ mokulanis@192.168.101.253:homelab/
+ssh mokulanis@192.168.101.253 'cd homelab && ./scripts/install.sh'
+```
+
+`install.sh` is idempotent. It creates secrets on first run, copies the units, and
+restarts only the services whose files changed. GitLab restarts only when `gitlab.rb`
+changes, because it is slow to boot.
+
+### First-time GitLab setup
+
+1. Wait for the first start (several minutes, database migrations):
+   `systemctl --user status gitlab`.
+2. Log in at http://gitlab.local as `root`. The password is `GITLAB_ROOT_PASSWORD`
+   in `~/.config/homelab/homelab.env`. Change it after the first login.
+3. Register the runner. In GitLab create a new runner (group or instance) and copy its
+   token (`glrt-...`), then on the server:
+
+   ```bash
+   podman exec -it gitlab-runner gitlab-runner register --non-interactive \
+     --url http://gitlab.local --token glrt-XXXX \
+     --executor docker --docker-image alpine:3.20 \
+     --docker-network-mode homelab \
+     --docker-extra-hosts gitlab.local:10.90.0.20 \
+     --docker-volumes /cache
+   ```
+
+   Job containers join the `homelab` network and reach GitLab at the fixed IP
+   `10.90.0.20`.
+4. Add the CI/CD variable `DEPLOY_SSH_KEY` (masked): a private key that can SSH to
+   `mokulanis@192.168.101.253`. The `deploy` job is manual on the default branch.
+
+## Using it from other LAN machines
 
 Single-label `.local` names resolve on any mDNS client:
-- **macOS / iOS / Windows 10+** – works out of the box.
-- **Linux client** – install a resolver once, then everything resolves via mDNS:
+- **macOS / iOS / Windows 10+**: works out of the box.
+- **Linux**: install a resolver once, then names resolve via mDNS:
   ```bash
   sudo pacman -S --needed avahi nss-mdns          # (Arch)
   sudo systemctl enable --now avahi-daemon
-  # mdns4_minimal is enough for single-label .local names, and IPv4-only:
   sudo sed -i 's/^hosts:.*/hosts: mymachines mdns4_minimal [NOTFOUND=return] resolve [!UNAVAIL=return] files myhostname dns/' /etc/nsswitch.conf
-  getent ahostsv4 gitea.local     # -> <server LAN IP>
+  getent ahostsv4 gitlab.local                    # -> 192.168.101.253
   ```
 
-Why single-label: Linux nss-mdns **cannot** resolve multi-label `.local` subdomains
-(`gitea.homelab.local`) via getaddrinfo — the NSS module rejects them even though the
-avahi daemon resolves them. Single-label names sidestep that entirely.
+Single-label names are used on purpose: Linux nss-mdns cannot resolve multi-label
+`.local` subdomains (`gitlab.homelab.local`) via getaddrinfo.
 
-Tip: if a browser fails while `curl` works, it's browser DNS cache or "Secure DNS/DoH" —
-restart the browser or disable DoH.
+If a browser fails while `curl` works, restart it or disable Secure DNS/DoH.
+
+### Pushing images to the GitLab registry
+
+The registry is plain HTTP, so mark it insecure on each client:
+
+```toml
+# /etc/containers/registries.conf.d/homelab.conf   (podman / buildah)
+[[registry]]
+location = "gitlab.local:5050"
+insecure = true
+```
+
+Docker clients use `"insecure-registries": ["gitlab.local:5050"]` in `daemon.json`.
+
+## Operations
+
+```bash
+systemctl --user list-units 'homelab*' nginx.service gitlab.service   # status
+systemctl --user --failed                                             # anything broken?
+systemctl --user restart gitlab                                       # one service
+journalctl --user -u gitlab -f                                        # logs
+podman ps                                                             # containers
+```
+
+**Updates are manual.** Pull the new image (`podman pull <image>`), update the tag in
+the quadlet if you pinned it, run `install.sh`, then restart the service.
+
+**Backups:**
+- Named volumes (GitLab, Portainer, Redis, Netdata): `podman volume export <name> > <name>.tar`.
+- `~/homelab/data/` (files, ArchiveBox, File Browser DB).
+- `~/.config/homelab/` (secrets). Keep this out of git.
 
 ## Notes
 
-- Reverse proxy: **nginx** (`nginx/conf.d/*.conf`, one server block per service).
-- **No HTTPS** – intentional, for simplicity on the LAN. HTTP only on port 80.
-- Secrets (`REDIS_PASSWORD`, `WOODPECKER_AGENT_SECRET`) live in `.env` – change if you like.
-- Persistent data: named volumes (databases) + `./data/` (files, archivebox, registry).
-- Stop: `docker compose down` (data kept). Full reset: `docker compose down -v`.
-- mDNS names: `systemctl status homelab-mdns` (host service running `mdns-aliases.sh`).
-- Set a DHCP reservation for this host so its LAN IP stays fixed.
+- Reverse proxy: **nginx** on :80, HTTP only. No HTTPS, intentional for the LAN.
+- Redis is internal only. Nothing is published on host :6379.
+- ArchiveBox is public (`PUBLIC_INDEX`/`PUBLIC_SNAPSHOTS`). File Browser's default login
+  is `admin` / `admin`, so change it on first login. The File Browser project is
+  archived upstream and no longer gets security fixes.
+- Netdata runs rootless, so its host metrics are limited compared to a rootful setup.
+- The Docker-based stack (compose, Gitea, Woodpecker, Docker registry) was removed.
+  Old commits still contain its example secrets, so those values are public and must not
+  be reused.
+- DHCP reservation for `192.168.101.253` is recommended. The dashboard's allowed hosts
+  include that IP.

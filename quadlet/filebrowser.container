@@ -1,0 +1,21 @@
+[Unit]
+Description=File Browser (files.local)
+
+[Container]
+ContainerName=filebrowser
+Image=docker.io/filebrowser/filebrowser:latest
+Network=homelab.network
+# The image runs as uid 1000 ("user"). keep-id maps that to the host user so it
+# can write the bind-mounted data dirs (otherwise it hits a subuid, EACCES).
+UserNS=keep-id
+# Non-root user cannot bind :80 (rootless), so listen on 8080 inside the container.
+Environment=FB_PORT=8080
+Volume=%h/homelab/data/files:/srv
+Volume=%h/homelab/data/filebrowser/database:/database
+Volume=%h/homelab/data/filebrowser/config:/config
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target

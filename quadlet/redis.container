@@ -1,0 +1,19 @@
+# Internal only (no PublishPort): reachable as redis:6379 from the homelab network.
+[Unit]
+Description=Redis (internal, redis:6379)
+
+[Container]
+ContainerName=redis
+Image=docker.io/library/redis:7-alpine
+Network=homelab.network
+Volume=redis_data:/data
+# Command is a [Container] key (appended after the image). ${REDIS_PASSWORD} is
+# expanded by systemd from the unit environment loaded below.
+Exec=redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes
+
+[Service]
+EnvironmentFile=%h/.config/homelab/homelab.env
+Restart=always
+
+[Install]
+WantedBy=default.target
